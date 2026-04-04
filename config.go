@@ -300,7 +300,7 @@ func (c *Config) Rollback(oldCfg *Config) error {
 	defer c.mu.Unlock()
 
 	*c = *oldCfg
-	fmt.Println("✓ Конфигурация откачена к предыдущему состоянию")
+	fmt.Println("Конфигурация откачена к предыдущему состоянию")
 	return nil
 }
 
