@@ -75,14 +75,14 @@ rules:
   - name: "SQLi_OrTrue"
     description: "Detect OR 1=1 injection"
     severity: "CRITICAL"
-    expression: "request.query.matches('(?i)(\\bor\\b\\s+\\d+\\s*=\\s*\\d+|\\bor\\b\\s+'[\\w]+'\\s*=\\s*'1|\\bor\\b\\s+true)')"
+    expression: 'request.query.matches("(?i)(\\bor\\b\\s+\\d+\\s*=\\s*\\d+|\\bor\\b\\s+true)")'
     action: "BLOCK"
     score: 0.95
 
   - name: "SQLi_AndTrue"
     description: "Detect AND 1=1 injection"
     severity: "HIGH"
-    expression: "request.query.matches('(?i)(\\band\\b\\s+\\d+\\s*=\\s*\\d+|\\band\\b\\s+'[\\w]+'\\s*=\\s*'1|\\band\\b\\s+true)')"
+    expression: 'request.query.matches("(?i)(\\band\\b\\s+\\d+\\s*=\\s*\\d+|\\band\\b\\s+true)")'
     action: "BLOCK"
     score: 0.9
 
@@ -604,7 +604,7 @@ rules:
   - name: "FileInclusion_LFI"
     description: "Detect local file inclusion patterns"
     severity: "HIGH"
-    expression: "request.url.matches('(?i)(\\.\.\/|\.\.\/\\\\|\.\.%2f|%2e%2e%2f|\\\.\.\\|\\.\.\\\\\\|passwd|shadow|config|application\\.yml|settings\\.py)')"
+    expression: 'request.url.matches("(?i)(\\.\\.[\\/]|\\.\\.%2f|%2e%2e%2f|passwd|shadow|config|application\\.yml|settings\\.py)")'
     action: "BLOCK"
     score: 0.9
 
@@ -666,14 +666,14 @@ rules:
   - name: "LDAP_Injection"
     description: "Detect LDAP injection patterns"
     severity: "HIGH"
-    expression: "request.query.matches('(?i)(\\*\\)|\\)(\\||\\&|\\!|\\(|\\)|\\)|%28|%29|%26|%7c|%21|%2a)')"
+    expression: "request.query.matches('(?i)(\\\\*\\\\)|\\\\)(\\\\||\\\\&|\\\\!|\\\\(|\\\\)|%28|%29|%26|%7c|%21|%2a)')"
     action: "BLOCK"
     score: 0.85
 
   - name: "LDAP_Wildcard"
     description: "Detect LDAP wildcard injection"
     severity: "HIGH"
-    expression: "request.query.matches('(?i)(\\*=|\(\\*|\*\\))')"
+    expression: "request.query.matches('(?i)(\\\\*=|\\\\(\\\\*|\\\\*\\\\))')"
     action: "BLOCK"
     score: 0.8
 
@@ -683,7 +683,7 @@ rules:
   - name: "XPath_Injection"
     description: "Detect XPath injection patterns"
     severity: "HIGH"
-    expression: "request.query.matches('(?i)(\\'\\]|\\/\\/|\|\\||contains\\s*\\(|text\\s*\\()')"
+    expression: "request.query.matches('(?i)(\\x27\\]|\\/\\/|\\|\\||contains\\s*\\(|text\\s*\\()')"
     action: "BLOCK"
     score: 0.85
 
@@ -693,7 +693,7 @@ rules:
   - name: "NoSQL_MongoDB"
     description: "Detect MongoDB injection patterns"
     severity: "HIGH"
-    expression: "request.query.matches('(\\$where:|\$regex:|\$gt:|\$lt:|\$gte:|\$lte:|\$ne:|\$in:|\$nin:|\$or:|\$and:|\$not:|\$exists:|\$type:|\$all:)')"
+    expression: "request.query.matches('(\\$where:|\\$regex:|\\$gt:|\\$lt:|\\$gte:|\\$lte:|\\$ne:|\\$in:|\\$nin:|\\$or:|\\$and:|\\$not:|\\$exists:|\\$type:|\\$all:)')"
     action: "BLOCK"
     score: 0.85
 
@@ -710,7 +710,7 @@ rules:
   - name: "CRLF_Injection"
     description: "Detect CRLF injection"
     severity: "HIGH"
-    expression: "request.query.matches('(\r\n|\n\r|\r|\n|%0[dDaA])')"
+    expression: "request.query.matches('(%0d%0a|%0a%0d|%0d|%0a|%0[dDaA])')"
     action: "BLOCK"
     score: 0.85
 
