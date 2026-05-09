@@ -1,0 +1,937 @@
+@startuml WAF_Enterprise_Architecture
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title Enterprise WAF Architecture - Production Grade
+
+' =======================================================
+' TRAFFIC INGRESS & CDN LAYER
+' =======================================================
+package "Traffic Ingress Layer" <<Infrastructure>> {
+    
+    class CDN {
+        + DDoSProtection()
+        + EdgeCaching()
+        + GlobalLoadBalancing()
+        + IPBlocking()
+        + RateLimit()
+        + GeoBlocking()
+    }
+    
+    class ReverseProxy {
+        + TLSTermination()
+        + LoadBalancing()
+        + HealthChecks()
+        + Forward()
+        + HeaderNormalization()
+    }
+}
+
+' =======================================================
+' CORE WAF SYSTEM
+' =======================================================
+package "Core WAF System (Go)" <<Component>> {
+
+    class WAFCore {
+        - config : Config
+        - requestProcessor : RequestProcessor
+        - responseProcessor : ResponseProcessor
+        - pluginManager : PluginManager
+        - securityEngine : SecurityEngine
+        - metrics : MetricsExporter
+        - logManager : LogManager
+        - eventPublisher : EventPublisher
+        + Start()
+        + Stop()
+        + HandleRequest(req) : Response
+        + HandleResponse(resp)
+        + ReloadConfig()
+        + PublishEvent(event)
+    }
+
+    class Config {
+        - ListenAddr : string
+        - BackendURL : string
+        - Modules : []Module
+        - TenantConfig : TenantSettings
+        + LoadFromStore()
+        + Validate()
+        + Watch()
+        + Rollback()
+    }
+
+    class RequestContext {
+        + RequestID : UUID
+        + TenantID : string
+        + IP : string
+        + UserAgent : string
+        + JWTClaims : map
+        + RiskScore : float
+        + Fingerprint : string
+        + SessionID : string
+        + Metadata : map
+        + IsBlocked() : bool
+        + GetThreatLevel() : Level
+    }
+
+    class PluginManager {
+        - mlClient : MLInferenceClient
+        - plugins : []Plugin
+        + LoadPlugin(name)
+        + CallML(features)
+        + ExecuteChain(ctx)
+    }
+    
+    class EventPublisher {
+        - messageBus : MessageBusClient
+        - batchBuffer : []Event
+        - schemaValidator : SchemaValidator
+        + Publish(topic, event)
+        + PublishBatch(events)
+        + PublishAsync(topic, event)
+        + OnError(callback)
+    }
+}
+
+' =======================================================
+' SECURITY ENGINE
+' =======================================================
+package "Security Engine (Go)" <<Component>> {
+
+    class SecurityEngine {
+        - ruleManager : RuleManager
+        - vulnScanner : VulnerabilityScanner
+        - threatIntel : ThreatIntelFeed
+        - botDetector : BotDetectionEngine
+        - apiSecurity : APISecurityLayer
+        + Evaluate(ctx) : Decision
+        + GetRiskScore(ctx) : float
+        + UpdateBaseline(data)
+    }
+
+    class RuleManager {
+        - rules : []Rule
+        - ruleCompiler : RuleCompiler
+        - cache : RuleCache
+        + LoadRules()
+        + EnableRule(id)
+        + DisableRule(id)
+        + CompileRules()
+        + TestRule(rule, testData)
+    }
+
+    interface Rule {
+        + Evaluate(ctx) : bool
+        + GetSeverity() : int
+        + GetCategory() : string
+    }
+    
+    class RuleCompiler {
+        + JITCompilation()
+        + RuleDependencyAnalysis()
+        + ParallelEvaluation()
+        + OptimizeRuleChain()
+    }
+}
+
+' =======================================================
+' VULNERABILITY DETECTION MODULES
+' =======================================================
+package "Vulnerability Detection" <<Security>> {
+
+    class SQLInjectionDetector implements Rule {
+        + DetectSQLi()
+        + CheckSQLKeywords()
+        + AnalyzeQueryStructure()
+    }
+    
+    class XSSDetector implements Rule {
+        + DetectXSS()
+        + CheckScriptTags()
+        + ValidateContext()
+    }
+    
+    class CommandInjectionDetector implements Rule
+    class FileInclusionDetector implements Rule
+    class CookieTamperingDetector implements Rule
+    class XXEDetector implements Rule
+    class SSRFDetector implements Rule
+    class PathTraversalDetector implements Rule
+
+    class BusinessLogicDetector implements Rule {
+        + DetectBOLA()
+        + DetectBFLA()
+        + DetectMassAssignment()
+        + CheckBusinessRules()
+    }
+}
+
+' =======================================================
+' ADVANCED ANALYTICS & BEHAVIORAL BASELINE
+' =======================================================
+package "Behavioral Analytics" <<Analytics>> {
+
+    class BehavioralBaseliner {
+        - patterns : []Pattern
+        - mlModel : AnomalyDetectionModel
+        + LearnNormalPatterns()
+        + DetectDeviations()
+        + AdaptiveThresholds()
+        + TimeSeriesAnalysis()
+        + ProfileBuilding()
+    }
+    
+    class ThreatIntelligenceFeed {
+        - feeds : []ThreatFeed
+        - cache : ThreatCache
+        + IPReputation(ip)
+        + MaliciousPatterns()
+        + GeoBlocking()
+        + ASNFiltering()
+        + UpdateFeeds()
+    }
+    
+    class StreamingAnalytics {
+        - processor : StreamProcessor
+        + TopAttackers()
+        + MostVulnerableEndpoints()
+        + AttackTrends()
+        + PredictiveBlocking()
+        + RealTimeDashboard()
+    }
+}
+
+' =======================================================
+' MACHINE LEARNING INTEGRATION
+' =======================================================
+package "Machine Learning Platform" <<AI>> {
+
+    package "ML Service (Python)" {
+        class MLInferenceService {
+            - model : NeuralNetwork
+            - featureExtractor : FeatureExtractor
+            + Predict(stream FeatureVector) : Prediction
+            + Explain(RequestID) : Explanation
+            + Train(batch)
+            + UpdateModel(newModel)
+            + GetModelMetrics()
+        }
+        
+        class AnomalyDetectionModel {
+            + DetectAnomaly(features)
+            + GetAnomalyScore()
+            + AdaptiveThreshold()
+        }
+    }
+
+    package "ML gRPC Interface" {
+        interface MLInferenceClient {
+            + Predict(features) : Prediction
+            + StreamPredict(stream) : stream Prediction
+            + HealthCheck()
+        }
+
+        class GRPCMLClient implements MLInferenceClient {
+            - conn : grpc.ClientConn
+            - timeout : Duration
+            + Connect()
+            + Reconnect()
+            + CircuitBreaker()
+        }
+    }
+    
+    class HardwareAcceleration {
+        + eBPFIntegration()
+        + FPGAOffloading()
+        + GPUForML()
+        + SmartNICOffload()
+    }
+}
+
+' =======================================================
+' STATE MANAGEMENT (CRITICAL!)
+' =======================================================
+package "State Management" <<Database>> {
+
+    class RateLimitCache {
+        - backend : RedisCluster
+        - slidingWindow : SlidingWindowCounter
+        + Increment(key) : int
+        + CheckQuota(key, limit) : bool
+        + DistributedSync()
+        + SlidingWindowState()
+        + GetWindowStats(key)
+        + Expire(key, ttl)
+    }
+    
+    class SessionStore {
+        - backend : RedisCluster
+        - encryption : EncryptionService
+        + StoreSession(session)
+        + GetSession(id) : Session
+        + ValidateCSRF(token)
+        + ConcurrentSessionControl()
+        + SessionFingerprinting()
+        + InvalidateSession(id)
+    }
+    
+    class AttackSignatureCache {
+        - backend : RedisCluster
+        - bloomFilter : BloomFilter
+        + KnownAttackPatterns()
+        + TemporaryBlocks()
+        + GlobalBlacklist()
+        + TTLManagement()
+        + BatchUpdate(signatures)
+        + CheckSignature(signature) : bool
+    }
+    
+    note right of RateLimitCache
+        Критически важно:
+        - Распределенная синхронизация
+        - Атомарные операции
+        - Sliding Window для точности
+        - Низкая латентность (<1ms)
+    end note
+}
+
+' =======================================================
+' MESSAGE BUS - BACKBONE OF THE SYSTEM (CRITICAL!)
+' =======================================================
+package "Event Streaming Platform" <<Infrastructure>> #LightYellow {
+
+    class MessageBus {
+        - brokers : []BrokerNode
+        - schemaRegistry : SchemaRegistry
+        - partitioner : Partitioner
+        - replicator : Replicator
+        + Publish(topic, event, metadata) : PublishResult
+        + PublishBatch(events) : []PublishResult
+        + Subscribe(topic, consumerGroup) : Subscription
+        + Acknowledge(messageId)
+        + DeadLetterQueue()
+        + GetOffset(topic, partition) : int64
+        + Seek(topic, partition, offset)
+        + CommitOffset(offset)
+    }
+    
+    class SchemaRegistry {
+        - schemas : map[string]Schema
+        - compatibility : CompatibilityChecker
+        + RegisterSchema(schema) : SchemaID
+        + GetSchema(id) : Schema
+        + ValidateCompatibility(oldSchema, newSchema) : bool
+        + VersionManagement()
+        + SchemaEvolution()
+        + EnforceContract()
+    }
+    
+    class TopicManager {
+        - topics : map[string]TopicConfig
+        + CreateTopic(name, config)
+        + ConfigureRetention(topic, duration)
+        + SetPartitions(topic, count)
+        + MonitorThroughput()
+        + CompactionPolicy()
+        + ReplicationFactor()
+    }
+    
+    class StreamProcessor {
+        - statefulOperations : map
+        + ProcessEvents()
+        + WindowedAggregations()
+        + PatternMatching()
+        + StatefulOperations()
+        + JoinStreams()
+        + FilterTransform()
+    }
+    
+    class ComplexEventProcessor {
+        - cepRules : []CEPRule
+        + CEPRulesEngine()
+        + TemporalPatterns()
+        + CorrelationRules()
+        + Sessionization()
+        + AttackChainDetection()
+    }
+    
+    class EventStore {
+        - storage : ObjectStorage
+        - index : TimeSeriesIndex
+        + AppendOnlyLog()
+        + EventSourcing()
+        + CompactionPolicy()
+        + TimeToLive(TTL)
+        + Snapshot()
+        + Replay(from, to)
+    }
+    
+    class StreamReplayer {
+        + TimeTravel(timestamp)
+        + ReplayFromOffset(offset)
+        + ReplayAtSpeed(multiplier)
+        + SnapshotRestore()
+        + TestingPlayback()
+    }
+    
+    ' Качество обслуживания
+    class DeliveryGuarantees {
+        + AtMostOnce()
+        + AtLeastOnce()
+        + ExactlyOnce()
+        + OrderedDelivery()
+        + IdempotencyCheck()
+    }
+    
+    class Resilience {
+        + RetryPolicies()
+        + CircuitBreakers()
+        + DeadLetterQueues()
+        + PoisonPillHandling()
+        + BackpressureControl()
+    }
+    
+    class MessageBusSecurity {
+        + TLSEncryption()
+        + SASLAuthentication()
+        + ACLAuthorization()
+        + AuditLogging()
+        + EncryptionAtRest()
+    }
+    
+    ' Паттерны обмена сообщениями
+    class EventSourcing {
+        + StateReconstruction()
+        + EventVersioning()
+        + SnapshotStrategies()
+        + AuditTrail()
+    }
+    
+    class CQRS {
+        + CommandSide()
+        + QuerySide()
+        + EventualConsistency()
+        + ReadModelUpdates()
+    }
+    
+    class SagaPattern {
+        + Orchestration()
+        + Choreography()
+        + CompensationActions()
+        + Idempotency()
+    }
+    
+    class OutboxPattern {
+        + TransactionalOutbox()
+        + PollingPublisher()
+        + ChangeDataCapture()
+        + GuaranteedDelivery()
+    }
+    
+    note top of MessageBus
+        КРИТИЧЕСКИЙ КОМПОНЕНТ!
+        
+        Топики событий:
+        
+        Security Events:
+        - waf.security.attack.detected
+        - waf.security.attack.blocked
+        - waf.security.anomaly.detected
+        - waf.security.bot.detected
+        - waf.security.rate_limit.exceeded
+        
+        Audit Events:
+        - waf.audit.config.changed
+        - waf.audit.rule.updated
+        - waf.audit.user.action
+        - waf.audit.admin.action
+        
+        Performance Events:
+        - waf.metrics.latency
+        - waf.metrics.throughput
+        - waf.metrics.error.rate
+        - waf.health.status
+        
+        System Events:
+        - waf.system.deployment
+        - waf.system.scale
+        - waf.system.alert
+        - waf.system.backup
+        
+        ML Events:
+        - waf.ml.prediction
+        - waf.ml.model.updated
+        - waf.ml.training.completed
+        
+        State Changes:
+        - waf.state.rule.changed
+        - waf.state.config.updated
+        - waf.state.tenant.modified
+    end note
+}
+
+' =======================================================
+' IDENTITY & ACCESS MANAGEMENT
+' =======================================================
+package "Identity & Access Management" <<Security>> {
+
+    class IdentityProvider {
+        - jwtValidator : JWTValidator
+        - oauth2Client : OAuth2Client
+        + ValidateJWT(token) : Claims
+        + GetUserContext(token) : UserContext
+        + RefreshToken(token) : Token
+        + RevokeToken(token)
+    }
+    
+    class AuthorizationEngine {
+        + CheckPermissions(user, resource)
+        + RBAC()
+        + ABAC()
+        + PolicyEvaluation()
+    }
+}
+
+' =======================================================
+' FORENSICS & COMPLIANCE
+' =======================================================
+package "Forensics & Compliance" <<Compliance>> {
+
+    class RequestRecorder {
+        - storage : TamperProofStorage
+        - encryption : E2EEncryption
+        + FullRequestCapture()
+        + SelectiveRecording()
+        + TamperProofStorage()
+        + EncryptedStorage()
+        + RetentionPolicy()
+    }
+    
+    class AttackReplayTool {
+        - sandbox : IsolatedEnvironment
+        + SafeReplay()
+        + DiffAnalysis()
+        + ProofGeneration()
+        + IsolatedEnvironment()
+        + ReplayInSandbox()
+    }
+    
+    class ComplianceReporter {
+        - templates : []ReportTemplate
+        + PCI_DSS_Reports()
+        + GDPR_Logging()
+        + OWASP_Top10_Tracking()
+        + SOC2_Compliance()
+        + HIPAA_Compliance()
+        + GenerateReport(standard)
+    }
+}
+
+' =======================================================
+' WAF SELF-DEFENSE
+' =======================================================
+package "WAF Self-Defense" <<Security>> {
+
+    class ManagementPlaneSecurity {
+        - mtlsConfig : mTLSConfig
+        - ipWhitelist : []CIDR
+        + MutualTLS()
+        + IPWhitelisting()
+        + AuditLogging()
+        + RBAC()
+        + SessionManagement()
+    }
+    
+    class ConfigurationIntegrity {
+        - signer : DigitalSigner
+        - versionControl : GitBackend
+        + DigitalSignatures()
+        + ChangeApprovalWorkflow()
+        + RollbackMechanism()
+        + VersionControl()
+        + IntegrityCheck()
+    }
+    
+    class HealthMonitoring {
+        - monitors : []HealthCheck
+        + ResourceExhaustionDetection()
+        + FailoverMechanism()
+        + AutoScalingTriggers()
+        + CircuitBreakers()
+        + SelfHealing()
+    }
+}
+
+' =======================================================
+' OBSERVABILITY STACK
+' =======================================================
+package "Observability" <<Monitoring>> {
+
+    class MetricsExporter {
+        - prometheus : PrometheusClient
+        + ServeMetrics()
+        + CustomMetrics()
+        + HistogramMetrics()
+        + GaugeMetrics()
+        + CounterMetrics()
+    }
+
+    class LogManager {
+        - structuredLogger : StructuredLogger
+        - samplingRate : float
+        + Info(msg, fields)
+        + Error(msg, fields)
+        + Debug(msg, fields)
+        + StructuredLogging()
+        + LogSampling()
+    }
+    
+    class TracingManager {
+        - tracer : OpenTelemetryTracer
+        + StartSpan(name)
+        + InjectContext()
+        + ExtractContext()
+        + DistributedTracing()
+    }
+}
+
+
+' =======================================================
+' MULTI-TENANCY SUPPORT
+' =======================================================
+package "Multi-Tenancy" <<Architecture>> {
+
+    class TenantIsolator {
+        - tenants : map[string]TenantConfig
+        + ResourceQuotas()
+        + RuleNamespaceSeparation()
+        + CrossTenantVisibilityControl()
+        + DataIsolation()
+        + NetworkSegmentation()
+    }
+    
+    class BillingEngine {
+        - meteringService : MeteringService
+        + RequestCounting()
+        + FeatureBasedBilling()
+        + UsageReports()
+        + CostAllocation()
+        + InvoiceGeneration()
+    }
+}
+
+
+' =======================================================
+' INFRASTRUCTURE & DEPLOYMENT
+' =======================================================
+package "Deployment & Infrastructure" <<Infrastructure>> {
+
+    class CI_CD {
+        - pipeline : CICDPipeline
+        + Build()
+        + Test()
+        + Deploy()
+        + RollbackOnFailure()
+        + BlueGreenDeployment()
+        + CanaryDeployment()
+    }
+
+    class Kubernetes {
+        - cluster : K8sCluster
+        + Run(WAFCore)
+        + Run(MLInferenceService)
+        + AutoScaling()
+        + ServiceMesh()
+        + NetworkPolicies()
+    }
+
+    class ConfigStore {
+        - backend : etcd/Consul
+        + GetConfig()
+        + Watch()
+        + AtomicUpdate()
+        + DistributedLock()
+    }
+    
+    class SecretManager {
+        + StoreSecret()
+        + RotateSecret()
+        + EncryptAtRest()
+        + AuditAccess()
+    }
+
+    ' Observability Infrastructure
+    class Prometheus {
+        + ScrapeMetrics()
+        + AlertRules()
+        + Recording Rules()
+    }
+    
+    class Alertmanager {
+        + RouteAlerts()
+        + Grouping()
+        + Inhibition()
+    }
+    
+    class Fluentd {
+        + CollectLogs()
+        + FilterTransform()
+        + ForwardToES()
+    }
+    
+    class Elasticsearch {
+        + IndexLogs()
+        + SearchAnalyze()
+        + DataRetention()
+    }
+    
+    class Jaeger {
+        + CollectTraces()
+        + DistributedTracing()
+        + ServiceDependency()
+    }
+}
+
+
+' =======================================================
+' RELATIONSHIPS - CORE FLOW
+' =======================================================
+
+CDN --> ReverseProxy : Forward Traffic
+ReverseProxy --> WAFCore : Proxied Requests
+
+WAFCore *-- Config
+WAFCore *-- PluginManager
+WAFCore *-- SecurityEngine
+WAFCore *-- EventPublisher
+WAFCore ..> IdentityProvider : Validate JWT
+WAFCore ..> MetricsExporter : Export Metrics
+WAFCore ..> LogManager : Write Logs
+WAFCore ..> TracingManager : Trace Requests
+WAFCore ..> RequestRecorder : Record Requests
+
+' =======================================================
+' EVENT PUBLISHER TO MESSAGE BUS
+' =======================================================
+
+EventPublisher --> MessageBus : Publish Events
+EventPublisher ..> SchemaRegistry : Validate Schema
+
+MessageBus *-- SchemaRegistry
+MessageBus *-- TopicManager
+MessageBus *-- DeliveryGuarantees
+MessageBus *-- Resilience
+MessageBus *-- MessageBusSecurity
+
+MessageBus --> StreamProcessor : Stream Events
+MessageBus --> ComplexEventProcessor : Complex Events
+MessageBus --> EventStore : Persist Events
+MessageBus --> SIEMExporter : Security Events
+
+StreamProcessor --> StreamingAnalytics : Analytics
+ComplexEventProcessor --> IncidentManagement : Incidents
+EventStore --> StreamReplayer : Replay
+
+' Message Bus Patterns
+EventSourcing ..> EventStore
+CQRS ..> MessageBus
+SagaPattern ..> ComplexEventProcessor
+OutboxPattern ..> MessageBus
+
+' Message Bus Implementations
+KafkaCluster ..|> MessageBus : implements
+RabbitMQCluster ..|> MessageBus : implements
+PulsarCluster ..|> MessageBus : implements
+NATSJetStream ..|> MessageBus : implements
+
+' =======================================================
+' SECURITY ENGINE RELATIONSHIPS
+' =======================================================
+
+SecurityEngine *-- RuleManager
+SecurityEngine ..> BotDetectionEngine
+SecurityEngine ..> APISecurityLayer
+SecurityEngine ..> ThreatIntelligenceFeed
+SecurityEngine ..> BehavioralBaseliner
+SecurityEngine ..> SOARClient
+
+RuleManager *-- RuleCompiler
+RuleManager ..> Rule
+
+' Vulnerability Detectors
+SecurityEngine ..> SQLInjectionDetector
+SecurityEngine ..> XSSDetector
+SecurityEngine ..> CommandInjectionDetector
+SecurityEngine ..> FileInclusionDetector
+SecurityEngine ..> BusinessLogicDetector
+
+' =======================================================
+' API SECURITY RELATIONSHIPS
+' =======================================================
+
+APISecurityLayer *-- APIRateLimiter
+APISecurityLayer *-- APISchemaValidator
+APISecurityLayer *-- GraphQLProtector
+
+APIRateLimiter --> RateLimitCache : Check/Update Limits
+
+' =======================================================
+' BOT DETECTION RELATIONSHIPS
+' =======================================================
+
+BotDetectionEngine --> SessionStore : Session Management
+CredentialStuffingDetector --> SessionStore : Login Correlation
+BotDetectionEngine ..> ThreatIntelligenceFeed : IP Reputation
+
+' =======================================================
+' STATE MANAGEMENT RELATIONSHIPS (КРИТИЧНО!)
+' =======================================================
+
+RateLimitCache --> MessageBus : Publish Rate Limit Events
+SessionStore --> MessageBus : Publish Session Events
+AttackSignatureCache --> MessageBus : Publish Signature Updates
+
+note bottom of RateLimitCache
+    State Management - критичные требования:
+    
+    1. РАСПРЕДЕЛЕННОСТЬ:
+       - Multi-region sync
+       - Conflict resolution
+       - Eventual consistency
+    
+    2. ПРОИЗВОДИТЕЛЬНОСТЬ:
+       - Latency < 1ms
+       - 100K+ ops/sec
+       - In-memory primary
+    
+    3. НАДЕЖНОСТЬ:
+       - Replication
+       - Persistence
+       - Disaster recovery
+    
+    4. МАСШТАБИРУЕМОСТЬ:
+       - Horizontal scaling
+       - Sharding
+       - Load balancing
+end note
+
+' =======================================================
+' ML INTEGRATION RELATIONSHIPS
+' =======================================================
+
+PluginManager ..> GRPCMLClient
+GRPCMLClient --> MLInferenceService : gRPC Calls
+MLInferenceService ..> HardwareAcceleration
+BehavioralBaseliner ..> AnomalyDetectionModel
+
+MLInferenceService --> MessageBus : Publish ML Predictions
+MessageBus --> MLInferenceService : Training Data
+
+' =======================================================
+' THREAT INTELLIGENCE RELATIONSHIPS
+' =======================================================
+
+TAXIISTIXClient --> ThreatIntelligenceFeed : IOC Updates
+MISPIntegration --> ThreatIntelligenceFeed : Threat Events
+InternalTIP --> AttackSignatureCache : Signature Updates
+
+ThreatIntelligenceFeed --> MessageBus : Publish TI Updates
+
+' =======================================================
+' MANAGEMENT PLANE RELATIONSHIPS
+' =======================================================
+
+ManagementAPIServer <-- WebGUI : REST API
+ManagementAPIServer <-- CLITool : CLI Commands
+ManagementAPIServer ..> RuleManager : Manage Rules
+ManagementAPIServer ..> Config : Update Config
+ManagementAPIServer ..> TenantIsolator : Manage Tenants
+ManagementAPIServer <-- ManagementPlaneSecurity : Protected By
+
+Config ..> ConfigStore : Load/Watch
+Config <-- ConfigurationIntegrity : Verify
+
+' =======================================================
+' SIEM/SOC RELATIONSHIPS
+' =======================================================
+
+MessageBus --> SIEMExporter : Security Events
+SIEMExporter *-- EventFormatter
+SIEMExporter ..> SyslogSender
+SIEMExporter ..> WebhookSender
+
+SIEMExporter --> IncidentManagement : Create Incidents
+IncidentManagement ..> SOARClient : Trigger Playbooks
+SOARClient --> MessageBus : Publish Actions
+
+' =======================================================
+' OBSERVABILITY RELATIONSHIPS
+' =======================================================
+
+LogManager --> Fluentd : Send Logs
+Fluentd --> Elasticsearch : Index Logs
+MetricsExporter --> Prometheus : Export Metrics
+Prometheus --> Alertmanager : Send Alerts
+TracingManager --> Jaeger : Send Traces
+
+Alertmanager --> MessageBus : Publish Alerts
+MessageBus --> ChatOpsBridge : Alert Notifications
+
+' =======================================================
+' EXTENDED INTEGRATIONS RELATIONSHIPS
+' =======================================================
+
+GitOpsController --> ConfigStore : Sync Config
+GitOpsController --> CI_CD : Trigger Pipeline
+ChatOpsBridge --> ManagementAPIServer : Execute Commands
+ExternalDLP --> WAFCore : DLP Checks
+
+MessageBus --> ChatOpsBridge : Event Notifications
+
+' =======================================================
+' MULTI-TENANCY RELATIONSHIPS
+' =======================================================
+
+WAFCore ..> TenantIsolator : Tenant Context
+TenantIsolator ..> BillingEngine : Usage Metrics
+BillingEngine --> MessageBus : Billing Events
+
+' =======================================================
+' EDGE DEPLOYMENT RELATIONSHIPS
+' =======================================================
+
+EdgeOrchestrator --> LightweightAgent : Deploy/Manage
+LightweightAgent --> MessageBus : Sync Events
+EdgeOrchestrator --> ConfigStore : Distribute Config
+
+' =======================================================
+' INFRASTRUCTURE RELATIONSHIPS
+' =======================================================
+
+CI_CD --> Kubernetes : Deploy
+Kubernetes --> WAFCore : Run
+Kubernetes --> MLInferenceService : Run
+Kubernetes --> MessageBus : Run
+
+ConfigStore --> Kubernetes : Config Distribution
+SecretManager --> Kubernetes : Secret Injection
+
+' =======================================================
+' FORENSICS & COMPLIANCE RELATIONSHIPS
+' =======================================================
+
+RequestRecorder --> EventStore : Store Requests
+AttackReplayTool --> StreamReplayer : Replay Attacks
+ComplianceReporter --> Elasticsearch : Query Logs
+ComplianceReporter --> MessageBus : Subscribe to Events
+
+' =======================================================
+' SELF-DEFENSE RELATIONSHIPS
+' =======================================================
+
+HealthMonitoring --> Kubernetes : Trigger Scaling
+HealthMonitoring --> MessageBus : Publish Health Events
+ConfigurationIntegrity --> GitOpsController : Version Control
+
+@enduml
