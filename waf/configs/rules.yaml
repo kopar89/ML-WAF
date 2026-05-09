@@ -1,0 +1,1116 @@
+rules:
+  # =======================================================
+  # SQL INJECTION - Comprehensive Coverage
+  # =======================================================
+  - name: "SQLi_UnionSelect"
+    description: "Detect SQL UNION SELECT injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(union\\s+select|union\\s+all\\s+select)')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "SQLi_SelectFrom"
+    description: "Detect SELECT FROM injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)\\bselect\\s+.*\\s+from\\b')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "SQLi_InsertInto"
+    description: "Detect INSERT INTO injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)\\binsert\\s+into\\b')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "SQLi_DropTable"
+    description: "Detect DROP TABLE injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)\\bdrop\\s+(table|database|index)\\b')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "SQLi_AlterTable"
+    description: "Detect ALTER TABLE injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)\\balter\\s+table\\b')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "SQLi_UpdateSet"
+    description: "Detect UPDATE SET injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)\\bupdate\\s+\\w+\\s+set\\b')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "SQLi_DeleteFrom"
+    description: "Detect DELETE FROM injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)\\bdelete\\s+from\\b')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "SQLi_ExecXP"
+    description: "Detect MSSQL xp_cmdshell"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(xp_cmdshell|exec\\s+xp_|sp_executesql|sp_msforEachDB)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "SQLi_ExecShell"
+    description: "Detect shell execution via SQL"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(exec\\s+[sx]p_|xp_regwrite|sp_OACreate|sp_OAMethod)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "SQLi_Comment"
+    description: "Detect SQL comment injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(--;|#|\\/\\*|\\*\\/)')"
+    action: "BLOCK"
+    score: 0.8
+
+  - name: "SQLi_OrTrue"
+    description: "Detect OR 1=1 injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(\\bor\\b\\s+\\d+\\s*=\\s*\\d+|\\bor\\b\\s+'[\\w]+'\\s*=\\s*'1|\\bor\\b\\s+true)')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "SQLi_AndTrue"
+    description: "Detect AND 1=1 injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(\\band\\b\\s+\\d+\\s*=\\s*\\d+|\\band\\b\\s+'[\\w]+'\\s*=\\s*'1|\\band\\b\\s+true)')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "SQLi_HexEncoding"
+    description: "Detect hex encoding in SQL"
+    severity: "HIGH"
+    expression: "request.query.matches('0x[0-9a-fA-F]+')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "SQLi_CharEncoding"
+    description: "Detect CHAR() encoding in SQL"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)char\\s*\\(\\d+\\)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "SQLi_UnionNull"
+    description: "Detect UNION SELECT NULL injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)union\\s+select\\s+null')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "SQLi_BasedKeyword"
+    description: "Detect base SQL keywords in suspicious context"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(truncate\\s+table|replace\\s+into|load\\s+file|into\\s+outfile)')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "SQLi_InformationSchema"
+    description: "Detect information_schema access"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)information_schema')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "SQLi_WaitDelay"
+    description: "Detect time-based SQL injection (waitfor)"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(waitfor\\s+delay|benchmark\\(|sleep\\()')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "SQLi_StackedQueries"
+    description: "Detect stacked queries injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches(';\\s*(select|insert|update|delete|drop)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "SQLi_InlineComment"
+    description: "Detect inline comment SQL injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)\\/\\*.*\\*\\/')"
+    action: "BLOCK"
+    score: 0.85
+
+  # =======================================================
+  # XSS - Comprehensive Coverage
+  # =======================================================
+  - name: "XSS_ScriptTag"
+    description: "Detect XSS via script tag"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(<script|<\\/script>)')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "XSS_ScriptSrc"
+    description: "Detect XSS via script src"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)<script\\s+src=')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "XSS_JavaScript"
+    description: "Detect javascript: protocol"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)javascript:')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "XSS_EventHandler"
+    description: "Detect XSS event handlers"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(onerror\\s*=|onload\\s*=|onclick\\s*=|onmouseover\\s*=|onfocus\\s*=|onblur\\s*=|onchange\\s*=|onsubmit\\s*=|onabort\\s*=|onbeforeunload\\s*=|onunload\\s*=)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "XSS_AlertFunction"
+    description: "Detect alert/confirm/prompt functions"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)(alert\\s*\\(|confirm\\s*\\(|prompt\\s*\\(|showModalDialog\\s*\\(|eval\\s*\\(|setTimeout\\s*\\(|setInterval\\s*\\()')"
+    action: "BLOCK"
+    score: 0.7
+
+  - name: "XSS_DocumentCookie"
+    description: "Detect document cookie theft attempt"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)document\\.cookie|document\\.domain|document\\.referrer|document\\.title')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "XSS_WindowLocation"
+    description: "Detect window location manipulation"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(window\\.location|self\\.location|parent\\.location|top\\.location)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "XSS_Iframe"
+    description: "Detect iframe injection"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(<iframe|<object|<embed|<applet|<video|<audio|<source|<track)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "XSS_SvgOnload"
+    description: "Detect SVG onload event"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)<svg[^>]*\\s+onload=')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "XSS_BodyOnload"
+    description: "Detect body onload event"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)<body[^>]*\\s+onload=')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "XSS_DivOnmouse"
+    description: "Detect div onmouse event"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)<div[^>]*\\s+on(mouse|error|load|click)=')"
+    action: "BLOCK"
+    score: 0.7
+
+  - name: "XSS_ImgOnerror"
+    description: "Detect img onerror event"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)<img[^>]*\\s+onerror=')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "XSS_Base64"
+    description: "Detect base64 encoded XSS"
+    severity: "MEDIUM"
+    expression: "request.query.matches('(data:text/html|JVBERi0|PHN2ZyB|PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiA')"
+    action: "MONITOR"
+    score: 0.5
+
+  - name: "XSS_UnicodeEscaped"
+    description: "Detect Unicode escaped XSS"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\\\u|<\\\\x)')"
+    action: "BLOCK"
+    score: 0.8
+
+  - name: "XSS_HTMLEntity"
+    description: "Detect HTML entity encoded XSS"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(&#[0-9]+;|&[a-z]+;|&#x[0-9a-f]+;)',)"
+    action: "MONITOR"
+    score: 0.5
+
+  - name: "XSS_SVGAnimated"
+    description: "Detect SVG animation XSS"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)<animate|<set>|<fe[A-Z]')"
+    action: "BLOCK"
+    score: 0.85
+
+  # =======================================================
+  # COMMAND INJECTION - Comprehensive Coverage
+  # =======================================================
+  - name: "CmdInjection_ShellMeta"
+    description: "Detect shell metacharacters in query"
+    severity: "CRITICAL"
+    expression: "request.query.matches('[;|`$(){}\\\\]')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "CmdInjection_Whoami"
+    description: "Detect whoami command"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)whoami')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "CmdInjection_IdCommand"
+    description: "Detect id command"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)\\bid\\b')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "CmdInjection_LsCat"
+    description: "Detect ls or cat commands"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(\\bls\\b|\\bcat\\b|\\bdir\\b|\\btac\\b|\\bmore\\b|\\bhead\\b|\\btail\\b)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "CmdInjection_WgetCurl"
+    description: "Detect wget or curl for remote code"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(wget\\s+http|curl\\s+http|fetch\\s+http|fetch\\s+https)')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "CmdInjection_BashShell"
+    description: "Detect bash/sh reverse shell patterns"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(/bin/sh|/bin/bash|/bin/bash\\s+-i|/bin/sh\\s+-i|/usr/bin/bash|/usr/bin/sh)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "CmdInjection_Eval"
+    description: "Detect eval execution attempts"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(eval\\s*\\(|exec\\s*\\(|system\\s*\\(|passthru\\s*\\(|shell_exec\\s*\\(|popen\\s*\\(|proc_open\\s*\\()')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "CmdInjection_Base64"
+    description: "Detect base64 encoded commands"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(base64_decode|base64_encode)\\s*\\(')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "CmdInjection_CurlUpload"
+    description: "Detect curl file upload"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(-d|--data|--data-binary|--form)\\s+@')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "CmdInjection_NcNetcat"
+    description: "Detect netcat reverse shell"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(nc\\s+-e|netcat\\s+-e|nc\\s+-c|/dev/tcp|\\.\\/dev\\/tcp)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "CmdInjection_Python"
+    description: "Detect python reverse shell"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(python.*-c|python.*-m\\s+http|py\\s+-c|subprocess|os\\.system|os\\.popen)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "CmdInjection_PHPexec"
+    description: "Detect PHP execution functions"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(shell_exec|exec\\s*\\(|system\\s*\\(|passthru\\s*\\(|pclose\\s*\\(|proc_open\\s*\\()')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "CmdInjection_FileRead"
+    description: "Detect file read commands"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(cat\\s+/etc|head\\s+/etc|tail\\s+/etc|less\\s+/etc|more\\s+/etc|cp\\s+/etc|mkdir\\s+)')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "CmdInjection_Environment"
+    description: "Detect environment variable access"
+    severity: "MEDIUM"
+    expression: "request.query.matches('(?i)\\$[A-Z_]+|\\$\\{[A-Z_]+\\}|env\\s+\\|')"
+    action: "MONITOR"
+    score: 0.5
+
+  # =======================================================
+  # PATH TRAVERSAL - Comprehensive Coverage
+  # =======================================================
+  - name: "PathTraversal_DotDot"
+    description: "Detect path traversal attempts"
+    severity: "HIGH"
+    expression: "request.url.matches('(\\.\\./|\\.\\.\\\\)')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "PathTraversal_Encoded"
+    description: "Detect URL encoded path traversal"
+    severity: "HIGH"
+    expression: "request.url.matches('(%2e%2e%2f|%2e%2e\\/|%252e%252e%252f|%2e\\.%2f|%2e%2e)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "PathTraversal_DoubleEncoded"
+    description: "Detect double URL encoded path traversal"
+    severity: "HIGH"
+    expression: "request.url.matches('(%252e%252e%252f|%252e%252e\\\\/|%252e%252f)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "PathTraversal_Unicode"
+    description: "Detect Unicode path traversal"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(%c0%ae%c0%ae|%c0%2e%c0%2e|\\uff0e\\uff0e)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "PathTraversal_Windows"
+    description: "Detect Windows path traversal"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)\\\\\\\\.\\\\\\\\|\\\\.\\.\\\\|\\.\\.\\\\.\\\\')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "PathTraversal_NullByte"
+    description: "Detect null byte injection"
+    severity: "HIGH"
+    expression: "request.url.matches('%00|\\x00')"
+    action: "BLOCK"
+    score: 0.8
+
+  - name: "PathTraversal_UTF8"
+    description: "Detect UTF-8 overlong encoding"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(%c0|%c1|%c2|%c3|%c4|%c5|%c6|%c7|%c8|%c9|%ca|%cb|%cc|%cd|%ce|%cf)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "PathTraversal_Sensitive"
+    description: "Detect access to sensitive paths"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\/etc\\/passwd|\\.\\.\\/etc\\/passwd|\\/etc\\/shadow|\\.\\.\\/etc\\/shadow|\\/proc\\/self|\\/proc\\/environ)')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "PathTraversal_Backup"
+    description: "Detect backup file access"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)(\\.bak|\\.backup|\\.old|\\.save|\\.swp|\\.swo|\\.tmp|~$|\\.backup|\\.orig)')"
+    action: "BLOCK"
+    score: 0.7
+
+  # =======================================================
+  # SSRF - Comprehensive Coverage
+  # =======================================================
+  - name: "SSRF_PrivateIP"
+    description: "Detect SSRF targeting internal networks"
+    severity: "HIGH"
+    expression: "request.url.matches('(127\\.0\\.0\\.1|localhost|0\\.0\\.0\\.0|169\\.254\\.|10\\.|172\\.(1[6-9]|2\\d|3[01])\\.|192\\.168\\.|224\\.|240\\.|255\\.255\\.255\\.0)')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "SSRF_Metadata"
+    description: "Detect SSRF targeting cloud metadata"
+    severity: "CRITICAL"
+    expression: "request.url.matches('(?i)(169\\.254\\.169\\.254|metadata\\.google\\.internal|metadata\\.amazonaws\\.com|metadata\\.azure\\.com|metadata\\.digitalocean\\.com|instance-data|latest\\/meta-data)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "SSRF_FileProtocol"
+    description: "Detect file:// protocol SSRF"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)file://')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "SSRF_GopherProtocol"
+    description: "Detect gopher:// protocol SSRF"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)gopher://')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "SSRF_DictProtocol"
+    description: "Detect dict:// protocol SSRF"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)dict://')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "SSRF_FTPProtocol"
+    description: "Detect FTP protocol SSRF"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)ftp://')"
+    action: "BLOCK"
+    score: 0.8
+
+  - name: "SSRF_LDAPProtocol"
+    description: "Detect LDAP protocol SSRF"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(ldap://|ldaps://)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "SSRF_InternalHost"
+    description: "Detect internal hostname SSRF"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(localhost|localhost\\.localdomain|intranet|internal|inverse|dmz|corporation|corp|home|server|fileserver|printserver|dns|dns1|dns2|mail|smtp|pop3|imap|chat|voip|phone|telecom|gateway|router|switch|hub|firewall|proxy|balancer|monitor|admin|manage|management)')"
+    action: "BLOCK"
+    score: 0.8
+
+  - name: "SSRF_Kubernetes"
+    description: "Detect Kubernetes API SSRF"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(kubernetes|k8s)\\.internal|\\.cluster\\.local|\\.svc\\.cluster\\.local')"
+    action: "BLOCK"
+    score: 0.9
+
+  # =======================================================
+  # XXE - Comprehensive Coverage
+  # =======================================================
+  - name: "XXE_Doctype"
+    description: "Detect XML DOCTYPE injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)<!DOCTYPE')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "XXE_Entity"
+    description: "Detect XML ENTITY injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)<!ENTITY')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "XXE_System"
+    description: "Detect SYSTEM entity reference"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)SYSTEM\\s+')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "XXE_Public"
+    description: "Detect PUBLIC entity reference"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)PUBLIC\\s+')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "XXE_XInclude"
+    description: "Detect XInclude attack"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(xi:include|xi:fallback|xpointer\\()')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "XXE_SOAP"
+    description: "Detect SOAP-based XXE"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(<soap:|Header>|<soap:Body>)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "XXE_CDATA"
+    description: "Detect CDATA section XXE"
+    severity: "MEDIUM"
+    expression: "request.query.matches('<!\\[CDATA\\[')"
+    action: "MONITOR"
+    score: 0.6
+
+  - name: "XXE_FileProtocol"
+    description: "Detect file:// in XML"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(file:\\/\\/\\/etc\\/|file:\\/\\/\\/windows\\/|file:\\/\\/\\/\\/\\/\\/\\/')"
+    action: "BLOCK"
+    score: 0.95
+
+  # =======================================================
+  # FILE INCLUSION - Comprehensive Coverage
+  # =======================================================
+  - name: "FileInclusion_Phar"
+    description: "Detect PHAR protocol inclusion"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)phar://')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "FileInclusion_Php"
+    description: "Detect PHP protocol inclusion"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)php://')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "FileInclusion_Data"
+    description: "Detect data:// protocol inclusion"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)data://')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "FileInclusion_Zip"
+    description: "Detect zip:// protocol inclusion"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)zip://')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "FileInclusion_Expect"
+    description: "Detect expect:// protocol inclusion"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)expect://')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "FileInclusion_Glob"
+    description: "Detect glob:// protocol inclusion"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)glob://')"
+    action: "MONITOR"
+    score: 0.6
+
+  - name: "FileInclusion_PharFile"
+    description: "Detect phar file inclusion"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)\\.phar')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "FileInclusion_LFI"
+    description: "Detect local file inclusion patterns"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\.\.\/|\.\.\/\\\\|\.\.%2f|%2e%2e%2f|\\\.\.\\|\\.\.\\\\\\|passwd|shadow|config|application\\.yml|settings\\.py)')"
+    action: "BLOCK"
+    score: 0.9
+
+  # =======================================================
+  # INSECURE DESERIALIZATION
+  # =======================================================
+  - name: "Deser_Java"
+    description: "Detect Java deserialization patterns"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(java\\.lang\\.Runtime|java\\.lang\\.Process|ObjectInputStream|ObjectOutputStream|readObject|writeObject|Externalizable)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "Deser_JavaGadget"
+    description: "Detect Java deserialization gadgets"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(org\\.apache\\.commons|gadget|groovy\\.exploit|ognl|spring.beans|rome|axis2|jmx')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "Deser_PHP"
+    description: "Detect PHP serialized data"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(O:[0-9]+:|a:[0-9]+:|s:[0-9]+:|C:[0-9]+:|r:[0-9]+:)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "Deser_PHPGadget"
+    description: "Detect PHP gadget chains"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(phpggadget|__destruct|__wakeup|__call|__invoke|serialize\\s*\\(|unserialize\\s*\\()')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "Deser_YAML"
+    description: "Detect YAML deserialization"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(!!python|!!java|!!ruby|yaml\\.load|yaml\\.unsafe_load|load_all)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "Deser_JSON"
+    description: "Detect unsafe JSON parsing"
+    severity: "MEDIUM"
+    expression: "request.query.matches('(?i)(json\\.loads\\s*\\(|pickle\\.loads|eval\\s*\\()')"
+    action: "MONITOR"
+    score: 0.5
+
+  - name: "Deser_Explicit_gadget"
+    description: "Detect explicit gadget usage"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(\\.exec\\(|\\.evaluate\\(|Function\\s*\\(|new\\s+Function)')"
+    action: "BLOCK"
+    score: 0.9
+
+  # =======================================================
+  # LDAP INJECTION
+  # =======================================================
+  - name: "LDAP_Injection"
+    description: "Detect LDAP injection patterns"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(\\*\\)|\\)(\\||\\&|\\!|\\(|\\)|\\)|%28|%29|%26|%7c|%21|%2a)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "LDAP_Wildcard"
+    description: "Detect LDAP wildcard injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(\\*=|\(\\*|\*\\))')"
+    action: "BLOCK"
+    score: 0.8
+
+  # =======================================================
+  # XPATH INJECTION
+  # =======================================================
+  - name: "XPath_Injection"
+    description: "Detect XPath injection patterns"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(\\'\\]|\\/\\/|\|\\||contains\\s*\\(|text\\s*\\()')"
+    action: "BLOCK"
+    score: 0.85
+
+  # =======================================================
+  # NOSQL INJECTION
+  # =======================================================
+  - name: "NoSQL_MongoDB"
+    description: "Detect MongoDB injection patterns"
+    severity: "HIGH"
+    expression: "request.query.matches('(\\$where:|\$regex:|\$gt:|\$lt:|\$gte:|\$lte:|\$ne:|\$in:|\$nin:|\$or:|\$and:|\$not:|\$exists:|\$type:|\$all:)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "NoSQL_Redis"
+    description: "Detect Redis injection patterns"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(config\\s+set|eval\\s+redis|script\\s+load|flushall|flushdb|shutdown|keys\\s+\\*)')"
+    action: "BLOCK"
+    score: 0.9
+
+  # =======================================================
+  # CRLF INJECTION / HTTP RESPONSE SPLITTING
+  # =======================================================
+  - name: "CRLF_Injection"
+    description: "Detect CRLF injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(\r\n|\n\r|\r|\n|%0[dDaA])')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "CRLF_HeaderInjection"
+    description: "Detect HTTP header injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(location\\s*:|set-cookie\\s*:|content-type\\s*:|refresh\\s*:|www-authenticate\\s*:)')"
+    action: "BLOCK"
+    score: 0.9
+
+  # =======================================================
+  # OPEN REDIRECT
+  # =======================================================
+  - name: "OpenRedirect_Protocol"
+    description: "Detect open redirect with protocols"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(redirect=|url=|next=|dest=|goto=|out=|view=|page=|feed=|host=|port=|path=|error=|validate=|callback=|return=|continue=|uri=|back=)')"
+    action: "BLOCK"
+    score: 0.7
+
+  - name: "OpenRedirect_Absolute"
+    description: "Detect absolute URL redirect"
+    severity: "MEDIUM"
+    expression: "request.query.matches('(http:\\/\\/|https:\\/\\/)')"
+    action: "MONITOR"
+    score: 0.4
+
+  # =======================================================
+  # SERVER-SIDE REQUEST FORGERY (Additional)
+  # =======================================================
+  - name: "SSRF_AWSMetadata"
+    description: "Detect AWS metadata endpoint access"
+    severity: "CRITICAL"
+    expression: "request.url.matches('(?i)(aws\\.amazon\\.com\\/latest|169\\.254\\.169\\.254\\/latest|ec2\\.internal)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "SSRF_GCPMetadata"
+    description: "Detect GCP metadata endpoint access"
+    severity: "CRITICAL"
+    expression: "request.url.matches('(?i)(metadata\\.google\\.compute\\.v1|metadata.google\\.internal\\/compute|metadata.google\\.internal')"
+    action: "BLOCK"
+    score: 1.0
+
+  # =======================================================
+  # BUSINESS LOGIC - ADDITIONAL PATTERNS
+  # =======================================================
+  - name: "BOLA_ObjectID"
+    description: "Detect object ID manipulation (BOLA)"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)\\/[0-9]+\\/[0-9]+|\/[a-z]+\\/[0-9]+')"
+    action: "MONITOR"
+    score: 0.4
+
+  - name: "BOLA_UUID"
+    description: "Detect UUID manipulation"
+    severity: "MEDIUM"
+    expression: "request.url.matches('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')"
+    action: "MONITOR"
+    score: 0.3
+
+  # =======================================================
+  # SENSITIVE DATA EXPOSURE
+  # =======================================================
+  - name: "Sensitive_Email"
+    description: "Detect email addresses in parameters"
+    severity: "MEDIUM"
+    expression: "request.query.matches('[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}')"
+    action: "MONITOR"
+    score: 0.3
+
+  - name: "Sensitive_SSN"
+    description: "Detect SSN patterns"
+    severity: "HIGH"
+    expression: "request.query.matches('([0-9]{3}-[0-9]{2}-[0-9]{4}|[0-9]{9})')"
+    action: "BLOCK"
+    score: 0.8
+
+  - name: "Sensitive_CreditCard"
+    description: "Detect credit card numbers"
+    severity: "HIGH"
+    expression: "request.query.matches('([0-9]{4}[-\\s]?[0-9]{4}[-\\s]?[0-9]{4}[-\\s]?[0-9]{4})')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "Sensitive_APIKey"
+    description: "Detect API keys in parameters"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(api[_-]?key|apikey|api[_-]?secret|client[_-]?secret|access[_-]?token|auth[_-]?token)=[a-zA-Z0-9_-]{20,}')"
+    action: "BLOCK"
+    score: 0.8
+
+  - name: "Sensitive_PrivateKey"
+    description: "Detect private key exposure"
+    severity: "CRITICAL"
+    expression: "request.url.matches('(?i)(\\.pem|\\.key|\\.csr|\\.p12|-----BEGIN\\s+PRIVATE\\s+KEY-----)')"
+    action: "BLOCK"
+    score: 1.0
+
+  - name: "Sensitive_Password"
+    description: "Detect passwords in parameters"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(password|passwd|pwd|secret|credential|auth)=[^&]+')"
+    action: "BLOCK"
+    score: 0.8
+
+  # =======================================================
+  # BUFFER OVERFLOW / DENIAL OF SERVICE
+  # =======================================================
+  - name: "DoS_LongParameter"
+    description: "Detect abnormally long parameters"
+    severity: "MEDIUM"
+    expression: "request.url.size() > 1000"
+    action: "MONITOR"
+    score: 0.4
+
+  - name: "DoS_ManyParameters"
+    description: "Detect abnormal number of parameters"
+    severity: "MEDIUM"
+    expression: "request.query.matches('(&[^=]+=){50,}')"
+    action: "BLOCK"
+    score: 0.6
+
+  - name: "DoS_RepeatedChars"
+    description: "Detect repeated characters DoS"
+    severity: "MEDIUM"
+    expression: "request.query.matches('(.)\\1{20,}')"
+    action: "BLOCK"
+    score: 0.5
+
+  # =======================================================
+  # SECURITY MISCONFIGURATION
+  # =======================================================
+  - name: "Config_DotEnv"
+    description: "Detect .env file access"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\.env|\\.env\\.local|\\.env\\.development|\\.env\\.production)')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "Config_Git"
+    description: "Detect .git directory access"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\.git\\/|\\.gitignore|\\.git\\/config|\\.git\\/HEAD|\\.git\\/logs)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "Config_SVN"
+    description: "Detect .svn directory access"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\.svn\\/|\\.svn\\/entries|\\.svn\\/wc)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "Config_Docker"
+    description: "Detect Docker configuration access"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(dockerfile|docker-compose|\\.dockerignore|\\.docker)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "Config_Kubernetes"
+    description: "Detect Kubernetes configuration access"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\.kube|configmap|secret|serviceaccount|ingress|deployment|statefulset|daemonset)')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "Config_AWS"
+    description: "Detect AWS configuration access"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\.aws|credentials|aws_access_key|aws_secret_key|\\.s3cfg)')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "Config_IDE"
+    description: "Detect IDE configuration access"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)(\\.idea|\\.vscode|settings\\.json|launch\\.json|tasks\\.json)')"
+    action: "BLOCK"
+    score: 0.7
+
+  - name: "Config_Log"
+    description: "Detect log file access"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)(\\.log|\\.out|debug\\.log|error\\.log|access\\.log)')"
+    action: "BLOCK"
+    score: 0.6
+
+  - name: "Config_Database"
+    description: "Detect database file access"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\.sqlite|\\.db|\\.sqlite3|\\.mdb|\\.accdb|\\.frm|\\.ibd)')"
+    action: "BLOCK"
+    score: 0.85
+
+  # =======================================================
+  # ADMIN PAGES / PRIVILEGE ESCALATION
+  # =======================================================
+  - name: "Admin_Path"
+    description: "Detect admin path access"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\/admin|\\/administrator|\\/manage|\\/dashboard|\\/panel|\\/backend|\\/cms|\\/wp-admin|\\/phpmyadmin|\\/administrator)')"
+    action: "MONITOR"
+    score: 0.5
+
+  - name: "Admin_Login"
+    description: "Detect login page access"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)(\/login|\/signin|\/auth|\/register|\/signup|\/join|\/password|reset)')"
+    action: "MONITOR"
+    score: 0.3
+
+  - name: "Admin_SystemPath"
+    description: "Detect system path access"
+    severity: "MEDIUM"
+    expression: "request.url.matches('(?i)(\/proc|\/sys|\/dev|\/boot|\/run|\/opt|\/srv|\/mnt)')"
+    action: "BLOCK"
+    score: 0.7
+
+  # =======================================================
+  # WEB SHELL DETECTION
+  # =======================================================
+  - name: "WebShell_Common"
+    description: "Detect common web shell patterns"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(cmd\\s*=|c\\s*=|exec\\s*=|shell\\s*=|command\\s*=|q\\s*=|v\\s*=|x\\s*=|_\\s*=|0\\s*=)')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "WebShell_Encoding"
+    description: "Detect encoded shell commands"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(base64_decode|system\\s*\\(|shell_exec|passthru|proc_open)\\s*\\(base64')"
+    action: "BLOCK"
+    score: 0.95
+
+  - name: "WebShell_Uploader"
+    description: "Detect file upload patterns"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(\\/upload|\/uploader|\/fileupload|\/uploadfile|\/filesave|\\.php\\.|\\.asp\\.|\\.jsp\\.)')"
+    action: "BLOCK"
+    score: 0.8
+
+  # =======================================================
+  # BOT / AUTOMATED ATTACKS
+  # =======================================================
+  - name: "Bot_Scraping"
+    description: "Detect web scraping patterns"
+    severity: "MEDIUM"
+    expression: "request.headers['User-Agent'].matches('(?i)(scrapy|curl|wget|python|java|go-http|php|perl|ruby|bot|spider|crawler|scanner)')"
+    action: "MONITOR"
+    score: 0.4
+
+  - name: "Bot_Automation"
+    description: "Detect automation tool signatures"
+    severity: "MEDIUM"
+    expression: "request.headers['User-Agent'].matches('(?i)(sqlmap|nmap|nikto|gobuster|dirbuster|hydra|burp|acunetix|nessus|openvas|metasploit)')"
+    action: "BLOCK"
+    score: 0.7
+
+  # =======================================================
+  # ENCODING / OBFUSCATION
+  # =======================================================
+  - name: "Encoding_DoubleURL"
+    description: "Detect double URL encoding"
+    severity: "MEDIUM"
+    expression: "request.url.matches('%25[0-9a-f]{2}%25[0-9a-f]{2}')"
+    action: "MONITOR"
+    score: 0.4
+
+  - name: "Encoding_UTF7"
+    description: "Detect UTF-7 encoding"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(%2b%41%2b|%2bADw-)')"
+    action: "BLOCK"
+    score: 0.8
+
+  - name: "Encoding_OverlongUTF8"
+    description: "Detect overlong UTF-8 encoding"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(%c0%[a-f]|%e0%[8a-f]%[8a-f])')"
+    action: "BLOCK"
+    score: 0.85
+
+  # =======================================================
+  # LOGGING & MONITORING (Non-blocking)
+  # =======================================================
+  - name: "Monitor_HighEntropy"
+    description: "Detect high entropy queries (potential obfuscation)"
+    severity: "MEDIUM"
+    expression: "request.url.size() > 200 && request.query.matches('(?i)[a-zA-Z0-9+/]{50,}')"
+    action: "MONITOR"
+    score: 0.3
+
+  - name: "Monitor_SQLKeywords"
+    description: "Detect SQL keywords for monitoring"
+    severity: "LOW"
+    expression: "request.query.matches('(?i)\\b(select|insert|update|delete|drop|create|alter)\\b')"
+    action: "MONITOR"
+    score: 0.2
+
+  - name: "Monitor_AdminAction"
+    description: "Detect admin actions for audit"
+    severity: "LOW"
+    expression: "request.url.matches('(?i)(delete|remove|destroy|disable|enable|update|create|add)\\.(json|xml|yaml|yml)')"
+    action: "MONITOR"
+    score: 0.2
+
+  - name: "Monitor_SensitiveParam"
+    description: "Detect sensitive parameters"
+    severity: "LOW"
+    expression: "request.query.matches('(?i)(token|key|secret|auth|session|jwt|access)')"
+    action: "MONITOR"
+    score: 0.1
+
+  # =======================================================
+  # CONTENT SECURITY POLICY BYPASS
+  # =======================================================
+  - name: "CSPBypass_Base"
+    description: "Detect base tag CSP bypass"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)<base\\s+href=')"
+    action: "BLOCK"
+    score: 0.85
+
+  - name: "CSPBypass_Meta"
+    description: "Detect meta http-equiv CSP bypass"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)<meta\\s+http-equiv=[\"\\']*refresh[\"\\']')"
+    action: "BLOCK"
+    score: 0.85
+
+  # =======================================================
+  # CORS MISCONFIGURATION
+  # =======================================================
+  - name: "CORS_Wildcard"
+    description: "Detect CORS wildcard origin"
+    severity: "MEDIUM"
+    expression: "request.headers['Origin'].matches('(http:\\/\\/|https:\\/\\/|null|\\*)')"
+    action: "MONITOR"
+    score: 0.3
+
+  # =======================================================
+  # SERVER SIDE INCLUDE (SSI) INJECTION
+  # =======================================================
+  - name: "SSI_Injection"
+    description: "Detect SSI injection"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(<!--\\s*#|<!--\\s*include|<!--\\s*echo|<!--\\s*exec|<!--\\s*print)')"
+    action: "BLOCK"
+    score: 0.9
+
+  # =======================================================
+  # TEMPLATE INJECTION
+  # =======================================================
+  - name: "Template_Jinja2"
+    description: "Detect Jinja2 template injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(\\{\\{|\\{\\%|%\\})')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "Template_Smarty"
+    description: "Detect Smarty template injection"
+    severity: "CRITICAL"
+    expression: "request.query.matches('(?i)(\\{\\*|\\$\\{|\\}\\})')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "Template_Angular"
+    description: "Detect Angular template injection"
+    severity: "HIGH"
+    expression: "request.query.matches('(?i)(\\{\\{.*\\}\\}|\\$ctrl\\.|\\$root\\.)')"
+    action: "BLOCK"
+    score: 0.85
+
+  # =======================================================
+  # SPAM / ABUSE PATTERNS
+  # =======================================================
+  - name: "Spam_Comment"
+    description: "Detect comment spam patterns"
+    severity: "LOW"
+    expression: "request.query.matches('(?i)(buy\\s+now|click\\s+here|free\\s+money|winner|lottery|viagra|casino|poker|bitcoin|crypto)')"
+    action: "MONITOR"
+    score: 0.2
+
+  # =======================================================
+  # DATA EXFILTRATION
+  # =======================================================
+  - name: "Exfil_SQLDump"
+    description: "Detect SQL dump patterns"
+    severity: "HIGH"
+    expression: "request.url.matches('(?i)(mysqldump|mysql dump|\\.sql|backup.*\\.gz')"
+    action: "BLOCK"
+    score: 0.9
+
+  - name: "Exfil_Base64Data"
+    description: "Detect base64 data exfiltration"
+    severity: "LOW"
+    expression: "request.query.matches('[A-Za-z0-9+/]{100,}={0,2}')"
+    action: "MONITOR"
+    score: 0.2

@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  waf:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "6060:6060"
+    environment:
+      - WAF_CONFIG_PATH=/etc/waf/configs/config.yaml
+      - WAF_BACKEND_URL=http://backend:9090
+    volumes:
+      - ./configs:/etc/waf/configs:ro
+    depends_on:
+      redis:
+        condition: service_started
+      backend:
+        condition: service_started
+    networks:
+      - waf-net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - waf-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    image: kennethreitz/httpbin
+    ports:
+      - "9090:80"
+    networks:
+      - waf-net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+networks:
+  waf-net:
+    driver: bridge

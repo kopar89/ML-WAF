@@ -1,0 +1,33 @@
+listen_addr: ":8080"
+backend_url: "http://httpbin.org"
+read_timeout: "10s"
+write_timeout: "10s"
+shutdown_timeout: "15s"
+
+security:
+  enabled: true
+  rules_file: "configs/rules.yaml"
+  detection:
+    - sqli
+    - xss
+    - cmdi
+    - ssrf
+    - xxe
+    - path_traversal
+    - file_inclusion
+    - cookie_tampering
+
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+
+redis:
+  addr: "redis:6379"
+  password: ""
+  db: 0
+
+tenant:
+  tenant_id: "default"
+  tenant_name: "Default Tenant"
+  domain: "example.com"
